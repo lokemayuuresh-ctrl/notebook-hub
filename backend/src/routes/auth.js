@@ -196,10 +196,22 @@ router.post('/google', async (req, res) => {
     const { idToken, role } = req.body;
     if (!idToken) return res.status(400).json({ message: 'Google ID Token required' });
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      console.error('CRITICAL: GOOGLE_CLIENT_ID missing on backend');
+      return res.status(500).json({ message: 'Google Auth not configured on server' });
+    }
+
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+    } catch (verifyErr) {
+      console.error('Google ID Token verification failed:', verifyErr.message);
+      return res.status(401).json({ message: 'Google verification failed: ' + verifyErr.message });
+    }
+
     const { sub: googleId, email, name, picture } = ticket.getPayload();
 
     let user = await User.findOne({
@@ -207,19 +219,18 @@ router.post('/google', async (req, res) => {
     });
 
     if (!user) {
-      // Create new user for Google Signup
       user = new User({
         name,
         email: email.toLowerCase(),
         googleId,
         role: role || 'buyer',
-        isVerified: true, // Google verified emails are trusted
+        isVerified: true,
         image: picture
       });
       await user.save();
     } else if (!user.googleId) {
-      // Link existing account with Google
       user.googleId = googleId;
+      if (picture && !user.image) user.image = picture;
       await user.save();
     }
 

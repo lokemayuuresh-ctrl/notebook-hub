@@ -117,7 +117,8 @@ const Login = () => {
         return;
       }
 
-      if (!pinCode || !/^[0-9]{6}$/.test(pinCode)) {
+      const trimmedPin = (pinCode || '').trim();
+      if (!trimmedPin || !/^[0-9]{6}$/.test(trimmedPin)) {
         toast.error("Invalid PIN Code", { description: "PIN code must be exactly 6 digits" });
         return;
       }

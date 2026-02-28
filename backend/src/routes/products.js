@@ -46,8 +46,12 @@ router.get('/', async (req, res) => {
 
     res.json(products);
   } catch (err) {
-    console.error('Get products error', err);
-    res.status(500).json({ message: err.message });
+    console.error('CRITICAL: GET /api/products failure:', {
+      message: err.message,
+      stack: err.stack,
+      dbStatus: mongoose.connection.readyState
+    });
+    res.status(500).json({ message: 'Database error occurred. Please check server logs.' });
   }
 });
 
