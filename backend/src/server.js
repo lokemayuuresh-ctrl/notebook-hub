@@ -8,6 +8,20 @@ const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
 const productsRouter = require('./routes/products');
 const authRouter = require('./routes/auth');
+
+// Temporary in-memory log storage for production debugging
+let appLogs = [];
+const originalError = console.error;
+console.error = (...args) => {
+  const log = {
+    timestamp: new Date().toISOString(),
+    message: args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')
+  };
+  appLogs.unshift(log);
+  if (appLogs.length > 50) appLogs.pop(); // keep last 50
+  originalError.apply(console, args);
+};
+
 const { setIo } = require('./lib/realtime');
 
 const app = express();
@@ -56,6 +70,12 @@ const paymentsRouter = require('./routes/payments');
 app.use('/api/payments', paymentsRouter);
 const adminRouter = require('./routes/admin');
 app.use('/api/admin', adminRouter);
+
+// Temporary endpoint to fetch logs for debugging (REMOVE BEFORE FINAL)
+app.get('/api/debug-logs', (req, res) => {
+  res.json(appLogs);
+});
+
 
 const PORT = process.env.PORT || 5000;
 
