@@ -22,20 +22,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-
-    const isAllowed = allowedOrigins.includes(origin) ||
-      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn('CORS request from unlisted origin:', origin);
-      callback(null, true); // Permissive in production to avoid blockers, still logs warning
-    }
-  },
+  origin: true, // Reflect any origin
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
