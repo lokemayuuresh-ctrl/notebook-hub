@@ -69,31 +69,33 @@ const PORT = process.env.PORT || 5000;
 module.exports.app = app;
 
 async function start() {
-  let uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/notebook-hub';
+  const isProduction = process.env.NODE_ENV === 'production';
+  let uri = process.env.MONGODB_URI;
   let mongod = null;
 
-  try {
-    console.log('Attempting to connect to local MongoDB at', uri);
-    // attempt a short connection to check if local mongodb is available
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
-    // if successful, disconnect because connectWithRetry will reconnect with correct options
-    console.log('Successfully connected to local MongoDB at', uri);
-    await mongoose.disconnect();
-  } catch (err) {
-    console.warn('Local MongoDB not available, falling back to in-memory MongoDB for development...');
-    const { MongoMemoryServer } = require('mongodb-memory-server');
-    mongod = await MongoMemoryServer.create();
-    uri = mongod.getUri();
+  // In development, if no URI is provided, use an in-memory database
+  if (!isProduction && !uri) {
+    console.log('No MONGODB_URI found, starting in-memory MongoDB for development...');
+    try {
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      mongod = await MongoMemoryServer.create();
+      uri = mongod.getUri();
 
-    // Ensure we stop the server on exit
-    process.on('exit', async () => {
-      try { await mongoose.disconnect(); } catch (e) { }
-      try { await mongod.stop(); } catch (e) { }
-    });
+      process.on('SIGINT', async () => {
+        if (mongod) await mongod.stop();
+      });
+    } catch (err) {
+      console.error('Failed to start in-memory MongoDB. Please install mongodb-memory-server or provide a MONGODB_URI.');
+      process.exit(1);
+    }
   }
 
-  // Export the express app for tests and other tools
-  module.exports.app = app;
+  // Fallback to local default if still no URI
+  if (!uri) {
+    uri = 'mongodb://127.0.0.1:27017/notebook-hub';
+  }
+
+  console.log('Initializing database connection...');
 
   try {
     // Use the new connection helper with retries and options
