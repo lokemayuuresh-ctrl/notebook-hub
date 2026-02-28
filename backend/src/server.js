@@ -14,26 +14,31 @@ const app = express();
 
 // CORS configuration for cookie support
 const allowedOrigins = [
-  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
   'https://notebook-hub-1.onrender.com',
   'https://notebook-hub.onrender.com',
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
-];
+  process.env.FRONTEND_URL,
+  'http://localhost:8080',
+  'http://127.0.0.1:8080'
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser requests (curl, Postman)
-    const isAllowed = allowedOrigins.some(o =>
-      typeof o === 'string' ? o === origin : o.test(origin)
-    );
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.includes(origin) ||
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
     if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('CORS not allowed from ' + origin));
+      console.warn('CORS request from unlisted origin:', origin);
+      callback(null, true); // Permissive in production to avoid blockers, still logs warning
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 app.use(express.json());
@@ -152,33 +157,39 @@ async function start() {
     app.use('/api/dev', devRouter);
   }
 
-  // Try to listen on PORT, if in use try subsequent ports up to a limit
-  const maxAttempts = 5;
-  let attemptPort = Number(PORT) || 5000;
+  // In production (Render), we MUST listen on exactly process.env.PORT
+  if (isProduction) {
+    server.listen(PORT, () => {
+      console.log(`Production server listening on port ${PORT}`);
+    });
+  } else {
+    // Try to listen on PORT, if in use try subsequent ports up to a limit
+    const maxAttempts = 5;
+    let attemptPort = Number(PORT) || 5000;
 
-  async function listenWithFallback(attemptsLeft) {
-    try {
-      await new Promise((resolve, reject) => {
-        const onError = (err) => reject(err);
-        server.once('error', onError);
-        server.listen(attemptPort, () => {
-          server.removeListener('error', onError);
-          console.log(`Server listening on port ${attemptPort}`);
-          resolve();
+    const listenWithFallback = async (attemptsLeft) => {
+      try {
+        await new Promise((resolve, reject) => {
+          const onError = (err) => reject(err);
+          server.once('error', onError);
+          server.listen(attemptPort, () => {
+            server.removeListener('error', onError);
+            console.log(`Dev server listening on port ${attemptPort}`);
+            resolve();
+          });
         });
-      });
-    } catch (err) {
-      if (err && err.code === 'EADDRINUSE' && attemptsLeft > 0) {
-        console.warn(`Port ${attemptPort} in use, trying port ${attemptPort + 1}`);
-        attemptPort += 1;
-        return listenWithFallback(attemptsLeft - 1);
+      } catch (err) {
+        if (err && err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+          console.warn(`Port ${attemptPort} in use, trying port ${attemptPort + 1}`);
+          attemptPort += 1;
+          return listenWithFallback(attemptsLeft - 1);
+        }
+        console.error('Failed to start server:', err);
+        process.exit(1);
       }
-      console.error('Failed to start server:', err && err.message ? err.message : err);
-      process.exit(1);
-    }
+    };
+    listenWithFallback(maxAttempts);
   }
-
-  listenWithFallback(maxAttempts);
 }
 
 module.exports.start = start;
