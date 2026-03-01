@@ -88,6 +88,16 @@ app.use('/api/payments', paymentsRouter);
 const adminRouter = require('./routes/admin');
 app.use('/api/admin', adminRouter);
 
+// Basic health check and redirection for manual testing
+app.get('/', (req, res) => {
+  res.send('<h1>NotebookHub Backend is Running</h1><p>API endpoints are at /api/...</p>');
+});
+
+// Redirect /products to /api/products for easier manual testing
+app.get('/products', (req, res) => {
+  res.redirect('/api/products');
+});
+
 // Temporary endpoint to fetch logs for debugging (REMOVE BEFORE FINAL)
 app.get('/api/debug-logs', (req, res) => {
   res.json(appLogs);
