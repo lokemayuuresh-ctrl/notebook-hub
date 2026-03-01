@@ -661,22 +661,18 @@ router.post('/:id/resend-delivery-otp', auth(true), async (req, res) => {
       return res.status(400).json({ message: 'Buyer email not found' });
     }
 
-    // Resending OTP via email
-    let emailSent = false;
-    try {
-      console.log(`Resending delivery OTP [${order.deliveryOTP}] to buyer: ${buyer.email} (Order: ${order._id})`);
-      // Use consolidated status update email for better context
-      await sendStatusUpdateEmail(buyer.email, order._id.toString(), 'shipped', 'Resending delivery verification code', order.deliveryOTP);
-      emailSent = true;
-      console.log(`Resend email success for ${buyer.email}`);
-    } catch (e) {
-      console.error('Email resend failed:', e.message);
-    }
+    // Resending OTP via email (Non-blocking)
+    console.log(`[OTP DEBUG] Resending delivery OTP [${order.deliveryOTP}] to buyer: ${buyer.email} (Order: ${order._id})`);
+
+    // Trigger email in background
+    sendStatusUpdateEmail(buyer.email, order._id.toString(), 'shipped', 'Resending delivery verification code', order.deliveryOTP)
+      .then(() => console.log(`[OTP DEBUG] Resend email success for ${buyer.email}`))
+      .catch(err => console.error(`[OTP DEBUG] Resend email failed for ${buyer.email}:`, err.message));
 
     res.json({
       success: true,
-      message: emailSent ? 'OTP resent successfully' : 'OTP logged to terminal (Email failed)',
-      emailSent
+      message: 'OTP resend triggered successfully',
+      buyerEmail: buyer.email
     });
   } catch (err) {
     console.error('Resend delivery OTP error', err);

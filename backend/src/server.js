@@ -65,8 +65,8 @@ app.use(cookieParser()); // Parse cookies
 // serve uploaded files
 const path = require('path');
 const fs = require('fs');
-// Move uploads to root backend folder for better visibility/persistence
-const uploadsDir = path.join(process.cwd(), 'uploads');
+// Robust path relative to this file to handle different working directories
+const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
