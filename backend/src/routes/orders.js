@@ -600,8 +600,13 @@ router.put('/:id', auth(true), async (req, res) => {
       try {
         const buyer = await User.findById(order.user);
         if (buyer && buyer.email) {
+          console.log(`Sending status update [${status}] email to current buyer: ${buyer.email} (Order: ${order._id})`);
+          if (status === 'shipped' && updated.deliveryOTP) {
+            console.log(`OTP generated for order ${order._id}: ${updated.deliveryOTP}`);
+          }
           // Send status update email, include OTP if it was just generated (shipped status)
-          await sendStatusUpdateEmail(buyer.email, order._id, status, note, updated.deliveryOTP);
+          await sendStatusUpdateEmail(buyer.email, order._id.toString(), status, note, updated.deliveryOTP);
+          console.log(`Status update email sent successfully to ${buyer.email}`);
 
           // If delivered AND paid, send invoice
           if (status === 'delivered' && updated.paymentStatus === 'paid') {
@@ -643,12 +648,13 @@ router.post('/:id/resend-delivery-otp', auth(true), async (req, res) => {
     }
 
     // Resending OTP via email
-
     let emailSent = false;
     try {
+      console.log(`Resending delivery OTP [${order.deliveryOTP}] to buyer: ${buyer.email} (Order: ${order._id})`);
       // Use consolidated status update email for better context
-      await sendStatusUpdateEmail(buyer.email, order._id, 'shipped', 'Resending delivery verification code', order.deliveryOTP);
+      await sendStatusUpdateEmail(buyer.email, order._id.toString(), 'shipped', 'Resending delivery verification code', order.deliveryOTP);
       emailSent = true;
+      console.log(`Resend email success for ${buyer.email}`);
     } catch (e) {
       console.error('Email resend failed:', e.message);
     }

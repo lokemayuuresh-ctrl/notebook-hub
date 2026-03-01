@@ -76,6 +76,7 @@ const sendInvoiceEmail = async (email, order, pdfBuffer) => {
  * Send Order Status Update Email
  */
 const sendStatusUpdateEmail = async (email, orderId, status, note = '', otp = null) => {
+  console.log(`Preparing status update email: To=${email}, Order=${orderId}, Status=${status}, OTP=${otp || 'None'}`);
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
