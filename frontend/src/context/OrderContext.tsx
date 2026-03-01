@@ -96,12 +96,19 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      console.log(`[ORDER DEBUG] Fetching from: ${base}/api/orders`);
       const res = await fetch(`${base}/api/orders`, {
-        credentials: 'include', // Include cookies for authentication
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
+      if (!res.ok) {
+        console.error(`[ORDER DEBUG] Status: ${res.status}`);
+        const errText = await res.text().catch(() => 'no body');
+        console.error(`[ORDER DEBUG] Error:`, errText);
+      }
       if (res.ok) {
         const data = await res.json();
         // map backend orders to frontend shape
