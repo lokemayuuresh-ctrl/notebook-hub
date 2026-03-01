@@ -32,6 +32,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,7 @@ const App = () => (
                     <Toaster />
                     <Sonner />
                     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                      <ScrollToTop />
                       <Routes>
                         <Route path="/login" element={<Login />} />
                         <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />

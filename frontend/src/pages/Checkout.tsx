@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import { ArrowLeft, CreditCard, Banknote, Package, CheckCircle } from 'lucide-react';
 import { getImageUrl } from '@/lib/image';
@@ -21,8 +21,6 @@ const Checkout = () => {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
-  const [placedOrderId, setPlacedOrderId] = useState('');
 
   // Calculate charges
   const subtotal = total; // Current total is actually subtotal (product prices)
@@ -30,25 +28,21 @@ const Checkout = () => {
   // Delivery charge will be calculated by backend (20rs within city, 40rs out of city, free for first order)
   // For display, we'll show an estimate message
 
-  if (items.length === 0 && !orderPlaced) {
+  if (items.length === 0) {
     navigate('/cart');
     return null;
   }
 
   const handlePayment = async () => {
     if (!address.trim()) {
-      toast({
-        title: "Address Required",
+      toast.error("Address Required", {
         description: "Please enter your shipping address",
-        variant: "destructive"
       });
       return;
     }
     if (!city.trim()) {
-      toast({
-        title: "City Required",
+      toast.error("City Required", {
         description: "Please enter your city for delivery charge calculation",
-        variant: "destructive"
       });
       return;
     }
@@ -59,59 +53,29 @@ const Checkout = () => {
     if (paymentMethod === 'razorpay') {
       // Mock Razorpay payment flow
       await new Promise(resolve => setTimeout(resolve, 2000));
-      toast({
-        title: "Payment Successful",
+      toast.success("Payment Successful", {
         description: "Your payment has been processed via Razorpay",
       });
     }
 
     const order = await createOrder(items, subtotal, paymentMethod, address, city, phone);
     if (order) {
-      setPlacedOrderId(order.id);
       clearCart();
-      setOrderPlaced(true);
-      toast({
-        title: "Order Placed!",
+      toast.success("Order Placed!", {
         description: `Your order ${order.id} has been placed successfully`,
       });
+      // Use window.location.href for "full page refresh" effect as requested by user
+      setTimeout(() => {
+        window.location.href = '/my-orders';
+      }, 1500);
     } else {
-      toast.error('Failed to place order. It was saved locally.');
+      toast.error("Order Failed", {
+        description: 'Failed to place order. Please try again.',
+      });
     }
 
     setIsProcessing(false);
   };
-
-  if (orderPlaced) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16">
-          <div className="max-w-md mx-auto text-center">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-10 w-10 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-serif font-bold text-foreground mb-4">Order Placed!</h1>
-            <p className="text-muted-foreground mb-2">
-              Your order <span className="font-semibold text-foreground">{placedOrderId}</span> has been placed successfully.
-            </p>
-            <p className="text-sm text-muted-foreground mb-8">
-              {paymentMethod === 'cod'
-                ? 'You will pay when the order is delivered.'
-                : 'Payment completed via Razorpay.'}
-            </p>
-            <div className="flex flex-col gap-3">
-              <Button onClick={() => navigate('/my-orders')}>
-                <Package className="h-4 w-4 mr-2" />
-                View My Orders
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/products')}>
-                Continue Shopping
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
