@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import {
   Package,
@@ -39,7 +39,6 @@ import { getImageUrl } from '@/lib/image';
 
 const SellerDashboard = () => {
   const { user, logout } = useAuth();
-  const { toast } = useToast();
   const { getSellerOrders, updateOrderStatus, getUnreadNotifications, markNotificationRead, fetchTrackingForOrder, addTrackingEntry, resendDeliveryOtp } = useOrders();
   const [orderNotes, setOrderNotes] = useState<Record<string, string>>({});
   const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({});
@@ -104,18 +103,14 @@ const SellerDashboard = () => {
         return true;
       } else {
         const error = await res.json().catch(() => ({ message: 'Update failed' }));
-        toast({
-          title: 'Update failed',
+        toast.error('Update failed', {
           description: error.message || 'Unable to update order status',
-          variant: 'destructive'
         });
         return false;
       }
     } catch (e: any) {
-      toast({
-        title: 'Update failed',
+      toast.error('Update failed', {
         description: e.message || 'Unable to update order status',
-        variant: 'destructive'
       });
       return false;
     }
@@ -123,10 +118,8 @@ const SellerDashboard = () => {
 
   const handleAcceptOrder = async (orderId: string) => {
     if (!shippingDate || !estimatedDelivery) {
-      toast({
-        title: 'Validation Error',
+      toast.error('Validation Error', {
         description: 'Please provide shipping date and estimated delivery date',
-        variant: 'destructive'
       });
       return;
     }
@@ -150,10 +143,8 @@ const SellerDashboard = () => {
 
   const handleAddProduct = () => {
     if (!productForm.name || !productForm.price || !productForm.category) {
-      toast({
-        title: "Missing Fields",
+      toast.error("Missing Fields", {
         description: "Please fill in name, price, and category",
-        variant: "destructive"
       });
       return;
     }
@@ -172,8 +163,7 @@ const SellerDashboard = () => {
       if (productForm.imageFile) payload.imageFile = productForm.imageFile;
       const added = await addProduct(payload);
 
-      toast({
-        title: "Product Added",
+      toast.success("Product Added", {
         description: `${added.name} has been added to your store`,
       });
       resetForm();
@@ -195,8 +185,7 @@ const SellerDashboard = () => {
       if (productForm.imageFile) upd.imageFile = productForm.imageFile;
       await updateProduct(editingProduct, upd);
 
-      toast({
-        title: "Product Updated",
+      toast.success("Product Updated", {
         description: `${productForm.name} has been updated`,
       });
       resetForm();
@@ -207,8 +196,7 @@ const SellerDashboard = () => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
       (async () => {
         await deleteProduct(id);
-        toast({
-          title: "Product Deleted",
+        toast.success("Product Deleted", {
           description: `${name} has been removed from your store`,
         });
       })();
@@ -283,8 +271,8 @@ const SellerDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card border border-border rounded-xl p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card border border-border rounded-xl p-4 md:p-6 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <ShoppingBag className="h-5 w-5 text-primary" />
@@ -331,7 +319,7 @@ const SellerDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-nowrap overflow-x-auto gap-2 mb-6 pb-2 no-scrollbar">
           <Button
             variant={activeTab === 'orders' ? 'default' : 'outline'}
             onClick={() => setActiveTab('orders')}
@@ -537,11 +525,11 @@ const SellerDashboard = () => {
             ) : (
               orders.map(order => (
                 <div key={order.id} className="bg-card border border-border rounded-xl p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-foreground">{order.id}</h3>
-                        <Badge className={getStatusColor(order.status)}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground text-sm md:text-base break-all">#{order.id}</h3>
+                        <Badge className={`${getStatusColor(order.status)} whitespace-nowrap`}>
                           {getStatusIcon(order.status)}
                           <span className="ml-1 capitalize">{order.status}</span>
                         </Badge>
@@ -699,9 +687,9 @@ const SellerDashboard = () => {
                               await fetchTrackingForOrder(order.id);
                               setOrderNotes({ ...orderNotes, [order.id]: '' });
                               setOrderStatuses({ ...orderStatuses, [order.id]: '' });
-                              toast({ title: 'Tracking updated', description: 'Tracking note added and status applied' });
+                              toast.success('Tracking updated', { description: 'Tracking note added and status applied' });
                             } catch (e) {
-                              toast({ title: 'Failed', description: 'Could not update tracking', variant: 'destructive' });
+                              toast.error('Failed', { description: 'Could not update tracking' });
                             }
                           }}
                         >
@@ -739,7 +727,10 @@ const SellerDashboard = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={async () => await markNotificationRead(notification.id)}
+                    onClick={async () => {
+                      await markNotificationRead(notification.id);
+                      toast.success('Notification marked as read');
+                    }}
                   >
                     Mark as Read
                   </Button>
@@ -852,8 +843,13 @@ const SellerDashboard = () => {
                   onClick={async () => {
                     if (!deliveryOtpModal) return;
                     setIsResending(true);
-                    await resendDeliveryOtp(deliveryOtpModal);
+                    const success = await resendDeliveryOtp(deliveryOtpModal);
                     setIsResending(false);
+                    if (success) {
+                      toast.success("OTP sent successfully");
+                    } else {
+                      toast.error("Failed to resend OTP");
+                    }
                   }}
                   disabled={isVerifying || isResending}
                 >
@@ -863,7 +859,7 @@ const SellerDashboard = () => {
               <Button
                 onClick={async () => {
                   if (deliveryOtp.length !== 6) {
-                    toast({ title: "Invalid OTP", description: "Please enter a 6-digit OTP", variant: "destructive" });
+                    toast.error("Invalid OTP", { description: "Please enter a 6-digit OTP" });
                     return;
                   }
                   setIsVerifying(true);

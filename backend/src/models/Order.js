@@ -32,8 +32,9 @@ const OrderSchema = new mongoose.Schema({
   },
   // Track which seller this order is for (for multi-seller orders, we'll group by seller)
   sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+  paymentMethod: { type: String, required: true, enum: ['cod', 'razorpay'], default: 'cod' },
   // Shipping and delivery information
-  shippingDate: Date,
+  shippingDate: Date, // This field was present in the original and not explicitly removed by the edit, so it remains.
   estimatedDelivery: Date,
   deliveryDate: Date,
   trackingInfo: String,

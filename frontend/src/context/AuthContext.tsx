@@ -20,13 +20,13 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string, role: UserRole, phone?: string, address?: string, city?: string, district?: string, state?: string, pinCode?: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, role: UserRole, phone?: string, address?: string, city?: string, district?: string, state?: string, pinCode?: string) => Promise<{ success: boolean; error?: string; userId?: string }>;
   checkAvailability: (email?: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (idToken: string, role?: UserRole) => Promise<{ success: boolean; error?: string; needsProfileCompletion?: boolean }>;
-  sendOTP: (userId: string, email?: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
+  sendOTP: (userId: string, email?: string, phone?: string) => Promise<{ success: boolean; error?: string; sentVia?: { email: boolean; phone: boolean }; errors?: string[] }>;
   verifyOTP: (userId: string, code: string) => Promise<{ success: boolean; error?: string }>;
   requestPhoneOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
   verifyPhoneUpdate: (phone: string, code: string) => Promise<{ success: boolean; error?: string }>;
@@ -231,12 +231,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: msg };
       }
       const data = await res.json();
-      const user = { id: data.user.id, name: data.user.name, email: data.user.email, role: data.user.role };
+      const user = { id: data.user.id, name: data.user.name, email: data.user.email, role: data.user.role, isVerified: data.user.isVerified };
       // Cookie is set automatically by server, no need to store token
       localStorage.setItem('currentUser', JSON.stringify(user));
       setUser(user);
       connectSocket(user.id);
-      return { success: true };
+      return { success: true, userId: user.id };
     } catch (err: any) {
       const message = err?.message?.includes('fetch') || err?.message?.includes('Network')
         ? `Network error: Unable to reach auth server at ${base || '/api'}`
@@ -283,7 +283,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: msg };
       }
       const data = await res.json();
-      const user = { id: data.user.id, name: data.user.name, email: data.user.email, role: data.user.role };
+      const user = { id: data.user.id, name: data.user.name, email: data.user.email, role: data.user.role, isVerified: data.user.isVerified };
       // Cookie is set automatically by server, no need to store token
       localStorage.setItem('currentUser', JSON.stringify(user));
       setUser(user);

@@ -94,7 +94,7 @@ router.post('/register', async (req, res) => {
     const saved = await u.save();
     console.log('User saved successfully to collection:', saved.collection.name, 'ID:', saved._id);
 
-    const user = { id: saved._id, name: saved.name, email: saved.email, role: saved.role, phone: saved.phone };
+    const user = { id: saved._id, name: saved.name, email: saved.email, role: saved.role, phone: saved.phone, isVerified: saved.isVerified };
     const token = jwt.sign({ id: saved._id, email: saved.email, role: saved.role }, process.env.JWT_SECRET || 'devsecret', { expiresIn: '24h' });
 
     // Set HTTP-only cookie with 24-hour expiration
@@ -106,7 +106,6 @@ router.post('/register', async (req, res) => {
       path: '/'
     });
 
-    res.status(201).json({ user });
     res.status(201).json({ user });
   } catch (err) {
     console.error('CRITICAL: Register error:', {
@@ -189,8 +188,7 @@ router.post('/login', async (req, res) => {
       path: '/'
     });
 
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified } });
   } catch (err) {
     console.error('CRITICAL: Login error:', {
       message: err.message,
@@ -290,13 +288,20 @@ router.post('/send-otp', async (req, res) => {
 
     const notifications = [];
 
+    const summary = {
+      emailSent: false,
+      phoneSent: false,
+      errors: []
+    };
+
     // Send Email OTP
     if (email) {
       try {
         await sendEmailOTP(email, code);
-        notifications.push('email');
+        summary.emailSent = true;
       } catch (err) {
         console.error('Email OTP send failed', err);
+        summary.errors.push(`Email: ${err.message}`);
       }
     }
 
@@ -311,14 +316,30 @@ router.post('/send-otp', async (req, res) => {
             from: process.env.TWILIO_PHONE_FROM,
             to: phone
           });
-          notifications.push('phone');
+          summary.phoneSent = true;
+        } else {
+          summary.errors.push('Phone: Twilio not configured');
         }
       } catch (smsErr) {
         console.error('SMS OTP send failed', smsErr);
+        summary.errors.push(`Phone: ${smsErr.message}`);
       }
     }
 
-    res.json({ success: true, sentTo: notifications });
+    // If both failed and were requested
+    if ((email && !summary.emailSent) && (phone && !summary.phoneSent)) {
+      return res.status(502).json({
+        success: false,
+        message: 'Failed to send OTP to any method',
+        errors: summary.errors
+      });
+    }
+
+    res.json({
+      success: true,
+      sentVia: { email: summary.emailSent, phone: summary.phoneSent },
+      errors: summary.errors.length > 0 ? summary.errors : undefined
+    });
   } catch (err) {
     console.error('Send OTP error', err);
     res.status(500).json({ message: 'Failed to send OTP' });

@@ -32,14 +32,39 @@ export const PhoneVerification = ({
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [timer, setTimer] = useState(0);
     const { sendOTP, verifyOTP } = useAuth();
 
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (timer > 0) {
+            interval = setInterval(() => {
+                setTimer((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
     const handleSendOTP = async () => {
+        if (timer > 0) return;
         setSending(true);
         const res = await sendOTP(userId, email, phone);
         setSending(false);
         if (res.success) {
-            toast.success("Verification code sent to your email and mobile!");
+            setTimer(60);
+            const methods = [];
+            if (res.sentVia?.email) methods.push("email");
+            if (res.sentVia?.phone) methods.push("mobile");
+
+            if (methods.length > 0) {
+                toast.success(`Verification code sent to your ${methods.join(" and ")}!`);
+            }
+
+            if (res.errors && res.errors.length > 0) {
+                toast.error("Some delivery methods failed", {
+                    description: res.errors.join(", ")
+                });
+            }
         } else {
             toast.error(res.error || "Failed to send OTP");
         }
@@ -98,10 +123,10 @@ export const PhoneVerification = ({
                         <Button
                             variant="link"
                             onClick={handleSendOTP}
-                            disabled={sending}
+                            disabled={sending || timer > 0}
                             className="p-0 h-auto"
                         >
-                            {sending ? "Sending..." : "Resend Code"}
+                            {sending ? "Sending..." : timer > 0 ? `Resend Code (${timer}s)` : "Resend Code"}
                         </Button>
                     </div>
                 </div>

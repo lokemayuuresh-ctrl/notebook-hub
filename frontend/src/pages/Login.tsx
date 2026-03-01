@@ -48,7 +48,7 @@ const Login = () => {
   const redirectTo = searchParams.get('redirect') || null;
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && user.isVerified) {
       if (redirectTo) {
         navigate(redirectTo, { replace: true });
       } else if (user.role === 'seller') {
@@ -59,7 +59,7 @@ const Login = () => {
     }
   }, [isAuthenticated, user, navigate, redirectTo]);
 
-  if (isAuthenticated && user) {
+  if (isAuthenticated && user && user.isVerified) {
     return null;
   }
 
@@ -132,10 +132,9 @@ const Login = () => {
       const result = await register(name, email, password, role, cleanPhone, address, city, district, state, pinCode);
 
       if (result.success) {
-        toast.success("Registration Successful", { description: "Your account has been created successfully" });
-        if (redirectTo) navigate(redirectTo, { replace: true });
-        else if (role === 'seller') navigate('/seller/dashboard', { replace: true });
-        else navigate('/', { replace: true });
+        setTempUserId(result.userId || null);
+        setShowOTP(true);
+        toast.success("Registration Successful", { description: "Please verify your account with the OTP sent to your email." });
       } else {
         toast.error("Registration Failed", { description: result.error || "Failed to create account" });
       }

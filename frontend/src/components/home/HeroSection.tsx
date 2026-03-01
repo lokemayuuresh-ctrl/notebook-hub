@@ -13,17 +13,17 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="space-y-8 text-center lg:text-left">
-                       
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground leading-tight animate-fade-up" style={{ animationDelay: '0.1s' }}>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground leading-tight animate-fade-up" style={{ animationDelay: '0.1s' }}>
               Where Ideas
               <span className="text-primary block">Take Shape</span>
             </h1>
-            
+
             <p className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              Discover our curated collection of premium notebooks, journals, and stationery. 
+              Discover our curated collection of premium notebooks, journals, and stationery.
               From creative sketching to professional note-taking, find the perfect companion for your thoughts.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-up" style={{ animationDelay: '0.3s' }}>
               <Link to="/products">
                 <Button variant="hero" size="xl" className="gap-2">
@@ -37,9 +37,9 @@ const HeroSection = () => {
                 </Button>
               </Link>
             </div>
-            
+
             {/* Stats */}
-            <div className="flex items-center justify-center lg:justify-start gap-8 pt-4 animate-fade-up" style={{ animationDelay: '0.4s' }}>
+            <div className="flex items-center justify-center lg:justify-start gap-4 sm:gap-8 pt-4 animate-fade-up" style={{ animationDelay: '0.4s' }}>
               <div>
                 <p className="text-2xl font-bold text-foreground">500+</p>
                 <p className="text-sm text-muted-foreground">Products</p>
@@ -56,7 +56,7 @@ const HeroSection = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Image Grid */}
           <div className="relative hidden lg:block">
             <div className="grid grid-cols-2 gap-4">
@@ -93,11 +93,11 @@ const HeroSection = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Floating Badge */}
             <div className="absolute -bottom-6 -left-6 bg-card border border-border rounded-xl p-4 shadow-elevated animate-float">
               <p className="text-sm font-medium text-foreground">Big Sale</p>
-             
+
             </div>
           </div>
         </div>

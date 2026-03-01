@@ -1,10 +1,24 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your preferred service
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS // Gmail app password
+    pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error('CRITICAL: Email Transporter Error:', error);
+  } else {
+    console.log('Email Transporter is ready to send messages');
   }
 });
 
@@ -67,22 +81,37 @@ const sendStatusUpdateEmail = async (email, orderId, status, note = '', otp = nu
     to: email,
     subject: `Notebook Hub - Order #${orderId} Update`,
     html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h2 style="color: #2563eb;">Order Update</h2>
-        <p>Your order <strong>#${orderId}</strong> status has been updated to: <span style="color: #2563eb; font-weight: bold; text-transform: uppercase;">${status}</span></p>
-        ${note ? `<p><strong>Note from seller:</strong> ${note}</p>` : ''}
+      <div style="font-family: 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff; color: #1e293b;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h2 style="color: #2563eb; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">Order Update</h2>
+          <div style="height: 2px; width: 40px; background: #2563eb; margin: 12px auto;"></div>
+        </div>
+        
+        <p style="font-size: 16px; line-height: 1.6;">Your order <strong style="color: #2563eb;">#${orderId}</strong> status has been updated to:</p>
+        
+        <div style="background: #eff6ff; color: #1d4ed8; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 700; text-transform: uppercase; margin: 16px 0; font-size: 14px; border: 1px solid #bfdbfe;">
+          ${status}
+        </div>
+
+        ${note ? `
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid #cbd5e1; margin: 16px 0;">
+          <p style="margin: 0; font-style: italic; color: #475569;">"${note}"</p>
+        </div>` : ''}
         
         ${otp ? `
-        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; border: 1px dashed #2563eb;">
-          <p style="margin: 0 0 10px 0; color: #64748b; font-size: 14px;">Delivery Verification OTP:</p>
-          <div style="font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #2563eb;">${otp}</div>
-          <p style="margin: 10px 0 0 0; color: #64748b; font-size: 12px;">Please provide this code to the delivery person only after you receive your items.</p>
+        <div style="background: #fff7ed; padding: 24px; border-radius: 12px; text-align: center; margin: 24px 0; border: 1px solid #fed7aa;">
+          <p style="margin: 0 0 12px 0; color: #9a3412; font-size: 14px; font-weight: 600;">Delivery Verification OTP:</p>
+          <div style="font-size: 36px; font-weight: 800; letter-spacing: 6px; color: #c2410c;">${otp}</div>
+          <p style="margin: 12px 0 0 0; color: #9a3412; font-size: 12px; opacity: 0.8;">Share this code with the delivery partner upon arrival.</p>
         </div>
         ` : ''}
 
-        <p>You can track your order live on our website.</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="font-size: 12px; color: #666;">Thank you for shopping with Notebook Hub!</p>
+        <p style="font-size: 14px; color: #64748b; margin-top: 32px;">You can track your order progress directly on the <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/my-orders" style="color: #2563eb; text-decoration: none; font-weight: 600;">Notebook Hub</a> dashboard.</p>
+        
+        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #f1f5f9; text-align: center;">
+          <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thank you for choosing premium quality.</p>
+          <p style="font-size: 12px; color: #2563eb; font-weight: 600; margin-top: 8px;">&copy; 2026 Notebook Hub</p>
+        </div>
       </div>
     `
   };

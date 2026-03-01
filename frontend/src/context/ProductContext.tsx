@@ -37,48 +37,47 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           image: p.image,
           category: p.category,
           stock: p.stock,
-          rating: p.rating,
-          reviews: p.reviews,
-          sellerId: p.sellerId ? (p.sellerId._id || p.sellerId) : undefined,
-          sellerName: p.sellerName || (p.sellerId && p.sellerId.name) || undefined
+          rating: p.rating || 0,
+          reviews: p.reviews || 0,
+          sellerId: p.sellerId?._id || p.sellerId,
+          sellerName: p.sellerName || p.sellerId?.name || 'Seller'
         }));
 
-        // Deduplicate: backend products take precedence, then add local-only products
+        // Deduplicate: backend products take precedence
         const backendIds = new Set(mapped.map((p: any) => String(p.id)));
-        const finalProducts = [...mapped];
 
+        // Load local seller products (if any)
+        let localSellerProducts: Product[] = [];
         const storedProducts = localStorage.getItem('sellerProducts');
         if (storedProducts) {
           try {
             const parsed = JSON.parse(storedProducts);
-            for (const p of parsed) {
-              const strId = String(p.id);
-              if (!backendIds.has(strId) && strId.startsWith('seller-')) {
-                // Fix broken 5001 ports from old cached data
-                if (p.image && p.image.includes(':5001/uploads')) {
-                  p.image = p.image.replace(':5001/uploads', ':5000/uploads');
-                }
-                finalProducts.push(p);
-                backendIds.add(strId);
-              }
-            }
+            localSellerProducts = parsed.filter((p: any) =>
+              String(p.id).startsWith('seller-') && !backendIds.has(String(p.id))
+            );
           } catch (e) {
             console.error('Failed to parse sellerProducts', e);
           }
         }
 
-        // Final safety check to ensure absolutely no duplicate keys
-        const absolutelyUnique = [];
-        const finalSeenIds = new Set();
+        const finalProducts = [...mapped, ...localSellerProducts];
+
+        // Final safety check to ensure absolutely no duplicate IDs
+        const uniqueProducts = [];
+        const seenIds = new Set();
         for (const p of finalProducts) {
           const strId = String(p.id);
-          if (!finalSeenIds.has(strId)) {
-            absolutelyUnique.push(p);
-            finalSeenIds.add(strId);
+          if (!seenIds.has(strId)) {
+            uniqueProducts.push(p);
+            seenIds.add(strId);
           }
         }
 
-        setProducts(absolutelyUnique);
+        setProducts(uniqueProducts);
+        // Sync categories
+        const cats = new Set(defaultCategories);
+        uniqueProducts.forEach(p => cats.add(p.category));
+        setCategories(Array.from(cats));
         return;
       } catch (err) {
         // fallback to static data
