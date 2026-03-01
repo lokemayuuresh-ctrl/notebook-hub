@@ -132,9 +132,14 @@ const Login = () => {
       const result = await register(name, email, password, role, cleanPhone, address, city, district, state, pinCode);
 
       if (result.success) {
-        setTempUserId(result.userId || null);
-        setShowOTP(true);
-        toast.success("Registration Successful", { description: "Please verify your account with the OTP sent to your email." });
+        toast.success("Registration Successful", { description: "Welcome to NotebookHub!" });
+        if (redirectTo) {
+          navigate(redirectTo, { replace: true });
+        } else if (role === 'seller') {
+          navigate('/seller/dashboard', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } else {
         toast.error("Registration Failed", { description: result.error || "Failed to create account" });
       }
@@ -428,19 +433,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-
-      <PhoneVerification
-        isOpen={showOTP}
-        onClose={() => setShowOTP(false)}
-        userId={tempUserId || ""}
-        email={email}
-        phone={phone}
-        onSuccess={() => {
-          toast.success("Verification Successful", { description: "Your account is now verified." });
-          if (user?.role === 'seller') navigate('/seller/dashboard');
-          else navigate('/');
-        }}
-      />
     </>
   );
 };

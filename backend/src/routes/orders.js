@@ -377,33 +377,18 @@ router.put('/:id', auth(true), async (req, res) => {
           // If shipped, generate delivery OTP and update shipping date
           if (status === 'shipped') {
             if (shippingDate) {
+              // OTP generation removed as per user request
               updates.shippingDate = new Date(shippingDate);
             }
             if (trackingInfo) {
               updates.trackingInfo = trackingInfo;
             }
-
-            // Generate 6-digit delivery OTP
-            const deliveryOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            updates.deliveryOTP = deliveryOTP;
-
-            // OTP generated - will be emailed to buyer below
-
           }
 
-          // If delivered, require OTP verification
+          // If delivered, bypass OTP verification
           if (status === 'delivered') {
-            const { otp } = req.body;
-            if (!otp) {
-              return res.status(400).json({ message: 'Delivery OTP verification is required to mark as delivered' });
-            }
-
-            if (order.deliveryOTP !== otp) {
-              return res.status(400).json({ message: 'Invalid delivery OTP' });
-            }
-
             updates.deliveryDate = new Date();
-            updates.deliveryOTP = null; // Clear OTP after success
+            updates.deliveryOTP = null;
 
             // Notify buyer about delivery
             await Notification.create({
@@ -641,44 +626,7 @@ router.put('/:id', auth(true), async (req, res) => {
   }
 });
 
-// POST /api/orders/:id/resend-delivery-otp - Resend delivery OTP to buyer
-router.post('/:id/resend-delivery-otp', auth(true), async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-
-    // Permissions: Only assigned seller or admin
-    if (req.user.role === 'seller' && order.sellerId?.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to resend OTP for this order' });
-    }
-
-    if (order.status !== 'shipped' || !order.deliveryOTP) {
-      return res.status(400).json({ message: 'Order must be in shipped status and have a generated OTP' });
-    }
-
-    const buyer = await User.findById(order.user);
-    if (!buyer || !buyer.email) {
-      return res.status(400).json({ message: 'Buyer email not found' });
-    }
-
-    // Resending OTP via email (Non-blocking)
-    console.log(`[OTP DEBUG] Resending delivery OTP [${order.deliveryOTP}] to buyer: ${buyer.email} (Order: ${order._id})`);
-
-    // Trigger email in background
-    sendStatusUpdateEmail(buyer.email, order._id.toString(), 'shipped', 'Resending delivery verification code', order.deliveryOTP)
-      .then(() => console.log(`[OTP DEBUG] Resend email success for ${buyer.email}`))
-      .catch(err => console.error(`[OTP DEBUG] Resend email failed for ${buyer.email}:`, err.message));
-
-    res.json({
-      success: true,
-      message: 'OTP resend triggered successfully',
-      buyerEmail: buyer.email
-    });
-  } catch (err) {
-    console.error('Resend delivery OTP error', err);
-    res.status(500).json({ message: 'Failed to resend OTP' });
-  }
-});
+// resend-delivery-otp route removed as per user request (OTP disabled)
 
 // DELETE /api/orders/:id - Cancel order (soft delete or status change)
 router.delete('/:id', auth(true), async (req, res) => {

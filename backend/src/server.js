@@ -93,10 +93,7 @@ app.use('/api/payments', paymentsRouter);
 const adminRouter = require('./routes/admin');
 app.use('/api/admin', adminRouter);
 
-// Redirect /products to /api/products for easier manual testing
-app.get('/products', (req, res) => {
-  res.redirect('/api/products');
-});
+//conflicting /products route removed to prevent SPA routing issues
 
 // Serve Frontend static files and handle SPA routing
 const frontendDist = path.join(__dirname, '..', '..', 'frontend', 'dist');

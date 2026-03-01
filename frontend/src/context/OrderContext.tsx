@@ -57,7 +57,6 @@ interface OrderContextType {
   requestNotificationPermission: () => Promise<boolean>;
   fetchTrackingForOrder: (orderId: string) => Promise<any>;
   addTrackingEntry: (orderId: string, status: string, note?: string) => Promise<any>;
-  resendDeliveryOtp: (orderId: string) => Promise<boolean>;
   trackingMap: Record<string, any>;
 }
 
@@ -291,29 +290,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const resendDeliveryOtp = async (orderId: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`${base}/api/orders/${orderId}/resend-delivery-otp`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        toast.success(data.message || 'Delivery OTP resent successfully');
-        return true;
-      } else {
-        const error = await res.json().catch(() => ({ message: 'Failed to resend OTP' }));
-        toast.error(error.message || 'Failed to resend OTP');
-        return false;
-      }
-    } catch (err) {
-      toast.error('Network error while resending OTP');
-      return false;
-    }
-  };
+  // resendDeliveryOtp removed (OTP disabled)
 
   const saveOrders = (newOrders: Order[]) => {
     setOrders(newOrders);
@@ -664,7 +641,6 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       requestNotificationPermission,
       fetchTrackingForOrder,
       addTrackingEntry,
-      resendDeliveryOtp,
       trackingMap
     }}>
       {children}

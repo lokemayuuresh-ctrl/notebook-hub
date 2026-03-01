@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
   passwordHash: String,
   role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
   phone: { type: String, index: true, sparse: true },
-  phoneVerified: { type: Boolean, default: false },
+  phoneVerified: { type: Boolean, default: true },
   address: String,
   city: String, // City for delivery charge calculation
   district: String,
@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
   // Google Auth
   googleId: { type: String, unique: true, sparse: true },
   // Verification
-  isVerified: { type: Boolean, default: false }
+  isVerified: { type: Boolean, default: true }
 }, { timestamps: true });
 
 // Exclude deleted users by default on find queries

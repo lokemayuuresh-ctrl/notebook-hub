@@ -39,16 +39,12 @@ import { getImageUrl } from '@/lib/image';
 
 const SellerDashboard = () => {
   const { user, logout } = useAuth();
-  const { getSellerOrders, updateOrderStatus, getUnreadNotifications, markNotificationRead, fetchTrackingForOrder, addTrackingEntry, resendDeliveryOtp } = useOrders();
+  const { getSellerOrders, updateOrderStatus, getUnreadNotifications, markNotificationRead, fetchTrackingForOrder, addTrackingEntry } = useOrders();
   const [orderNotes, setOrderNotes] = useState<Record<string, string>>({});
   const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({});
   const [acceptOrderModal, setAcceptOrderModal] = useState<string | null>(null);
   const [shippingDate, setShippingDate] = useState('');
   const [estimatedDelivery, setEstimatedDelivery] = useState('');
-  const [deliveryOtpModal, setDeliveryOtpModal] = useState<string | null>(null);
-  const [deliveryOtp, setDeliveryOtp] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const { getSellerProducts, addProduct, updateProduct, deleteProduct, categories } = useProducts();
   const navigate = useNavigate();
 
@@ -91,13 +87,10 @@ const SellerDashboard = () => {
 
       if (res.ok) {
         await fetchTrackingForOrder(orderId);
-        toast({
-          title: "Order Updated",
+        toast.success("Order Updated", {
           description: `Order ${orderId} has been ${status}`,
         });
         setAcceptOrderModal(null);
-        setDeliveryOtpModal(null);
-        setDeliveryOtp('');
         setShippingDate('');
         setEstimatedDelivery('');
         return true;
@@ -647,11 +640,11 @@ const SellerDashboard = () => {
 
                     {order.status === 'shipped' && (
                       <Button
-                        onClick={() => setDeliveryOtpModal(order.id)}
+                        onClick={() => handleStatusUpdate(order.id, 'delivered')}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                       >
-                        <ShieldCheck className="h-4 w-4 mr-2" />
-                        Verify Delivery & Mark Delivered
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark Delivered
                       </Button>
                     )}
 
@@ -798,86 +791,6 @@ const SellerDashboard = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delivery OTP Dialog */}
-        <Dialog open={!!deliveryOtpModal} onOpenChange={(open) => !open && !isVerifying && setDeliveryOtpModal(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                Delivery Verification
-              </DialogTitle>
-              <DialogDescription>
-                Please enter the 6-digit OTP sent to the buyer's email/phone to verify and complete the delivery.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-6">
-              <div className="space-y-2">
-                <Label htmlFor="deliveryOtp" className="text-center block">Enter Delivery OTP</Label>
-                <Input
-                  id="deliveryOtp"
-                  type="text"
-                  placeholder="000000"
-                  value={deliveryOtp}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    if (val.length <= 6) setDeliveryOtp(val);
-                  }}
-                  className="text-center text-2xl tracking-[0.5em] font-bold h-14"
-                  maxLength={6}
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="sm:justify-between flex-col sm:flex-row gap-2">
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setDeliveryOtpModal(null)}
-                  disabled={isVerifying || isResending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    if (!deliveryOtpModal) return;
-                    setIsResending(true);
-                    const success = await resendDeliveryOtp(deliveryOtpModal);
-                    setIsResending(false);
-                    if (success) {
-                      toast.success("OTP sent successfully");
-                    } else {
-                      toast.error("Failed to resend OTP");
-                    }
-                  }}
-                  disabled={isVerifying || isResending}
-                >
-                  {isResending ? "Sending..." : "Resend OTP"}
-                </Button>
-              </div>
-              <Button
-                onClick={async () => {
-                  if (deliveryOtp.length !== 6) {
-                    toast.error("Invalid OTP", { description: "Please enter a 6-digit OTP" });
-                    return;
-                  }
-                  setIsVerifying(true);
-                  const success = await handleStatusUpdate(deliveryOtpModal!, 'delivered', undefined, undefined, undefined, deliveryOtp);
-                  setIsVerifying(false);
-                  if (success) {
-                    setDeliveryOtpModal(null);
-                    setDeliveryOtp('');
-                  }
-                }}
-                disabled={deliveryOtp.length !== 6 || isVerifying || isResending}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                {isVerifying ? "Verifying..." : "Verify & Mark Delivered"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );
