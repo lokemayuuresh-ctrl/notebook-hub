@@ -160,8 +160,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           stock: p.stock,
           rating: p.rating || 0,
           reviews: p.reviews || 0,
-          sellerId: p.sellerId,
-          sellerName: p.sellerName
+          sellerId: p.sellerId?._id || p.sellerId,
+          sellerName: p.sellerName || p.sellerId?.name || 'Seller'
         };
         const updatedProducts = [...products, mapped];
         setProducts(updatedProducts);

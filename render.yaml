@@ -33,9 +33,8 @@ services:
         sync: false
 
   # Frontend static site on Render
-  - type: web
+  - type: static_site
     name: notebook-hub-frontend
-    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
