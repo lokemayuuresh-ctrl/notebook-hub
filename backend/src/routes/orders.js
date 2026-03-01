@@ -598,6 +598,7 @@ router.put('/:id', auth(true), async (req, res) => {
 
       // Email notifications
       try {
+        console.log(`[OTP DEBUG] Looking up buyer for order status update... User ID: ${order.user}`);
         const buyer = await User.findById(order.user);
         if (buyer && buyer.email) {
           const buyerEmail = buyer.email;
@@ -609,14 +610,10 @@ router.put('/:id', auth(true), async (req, res) => {
             console.log(`[OTP DEBUG] OTP generated and being sent: ${updated.deliveryOTP}`);
           }
 
-          // Await the email sending to catch errors immediately
-          try {
-            await sendStatusUpdateEmail(buyerEmail, orderIdStr, status, note, updated.deliveryOTP);
-            console.log(`[OTP DEBUG] Email sent successfully to ${buyerEmail} at ${new Date().toISOString()}`);
-          } catch (emailErr) {
-            console.error(`[OTP DEBUG] Failed to send email to ${buyerEmail}:`, emailErr);
-            // We don't throw here to avoid failing the whole request, but we've logged the error
-          }
+          // Trigger email without awaiting to ensure <10s response to seller
+          sendStatusUpdateEmail(buyerEmail, orderIdStr, status, note, updated.deliveryOTP)
+            .then(() => console.log(`[OTP DEBUG] Email successfully sent to ${buyerEmail}`))
+            .catch(err => console.error(`[OTP DEBUG] Background email failure for ${buyerEmail}:`, err.message));
 
           // If delivered AND paid, send invoice
           if (status === 'delivered' && updated.paymentStatus === 'paid') {

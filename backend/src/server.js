@@ -65,11 +65,16 @@ app.use(cookieParser()); // Parse cookies
 // serve uploaded files
 const path = require('path');
 const fs = require('fs');
-const uploadsDir = path.join(__dirname, 'uploads');
+// Move uploads to root backend folder for better visibility/persistence
+const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  setHeaders: (res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 app.use('/api/products', productsRouter);
 app.use('/api/auth', authRouter);

@@ -4,8 +4,20 @@ export const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.or
 
 export const getImageUrl = (url?: string) => {
     if (!url) return FALLBACK_IMAGE;
+
+    // If it's already a full URL or data URI, return as is
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
     }
-    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+
+    // Ensure we don't double slash
+    const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+    const finalUrl = `${API_BASE_URL}/${cleanUrl}`;
+
+    // Log for debugging (only in development or if explicitly requested)
+    if (process.env.NODE_ENV === 'development') {
+        // console.log(`[IMAGE DEBUG] Constructed URL: ${finalUrl} (Original: ${url})`);
+    }
+
+    return finalUrl;
 };
