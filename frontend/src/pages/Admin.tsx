@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Users, ShoppingBag, DollarSign, TrendingUp, LogOut } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/api';
 
 interface DashboardStats {
   totalUsers: number;
@@ -46,7 +47,7 @@ const Admin = () => {
     }
   }, [navigate]);
 
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const base = API_BASE_URL;
 
   // Fetch dashboard stats
   useEffect(() => {
@@ -151,11 +152,10 @@ const Admin = () => {
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                  activeTab === 'dashboard'
+                className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'dashboard'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
@@ -164,11 +164,10 @@ const Admin = () => {
               </button>
               <button
                 onClick={() => setActiveTab('users')}
-                className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                  activeTab === 'users'
+                className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'users'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -177,11 +176,10 @@ const Admin = () => {
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                  activeTab === 'orders'
+                className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'orders'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <ShoppingBag className="h-4 w-4" />
@@ -272,11 +270,10 @@ const Admin = () => {
                           <td className="p-4 text-foreground">{user.name}</td>
                           <td className="p-4 text-muted-foreground">{user.email}</td>
                           <td className="p-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              user.role === 'seller'
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'seller'
                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
                                 : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                            }`}>
+                              }`}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </span>
                           </td>
@@ -322,13 +319,12 @@ const Admin = () => {
                           <td className="p-4 text-foreground">{order.buyerName}</td>
                           <td className="p-4 font-semibold text-foreground">₹{order.total.toLocaleString()}</td>
                           <td className="p-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              order.status === 'delivered'
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'delivered'
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
                                 : order.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
-                            }`}>
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+                              }`}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </span>
                           </td>

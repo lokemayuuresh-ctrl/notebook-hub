@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '@/types';
 import { products as defaultProducts, categories as defaultCategories } from '@/data/products';
+import { API_BASE_URL } from '@/lib/api';
 
 interface ProductContextType {
   products: Product[];
@@ -21,7 +22,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Try to fetch from backend API; fall back to local data if unavailable
     const fetchProducts = async () => {
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const base = API_BASE_URL;
       try {
         const res = await fetch(`${base}/api/products`, {
           credentials: 'include'
@@ -117,7 +118,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const addProduct = async (productData: Omit<Product, 'id' | 'rating' | 'reviews'>): Promise<Product> => {
     // Try to persist on backend
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const base = API_BASE_URL;
     try {
       let res;
       // If productData contains a File under `imageFile`, use multipart/form-data
@@ -193,7 +194,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const base = API_BASE_URL;
     const product = products.find(p => p.id === id);
     // If product looks like a backend product (id is an objectId-like string), try backend update
     const useBackend = product && !product.id.startsWith('seller-');
@@ -256,7 +257,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteProduct = async (id: string) => {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const base = API_BASE_URL;
     const product = products.find(p => p.id === id);
     const useBackend = product && !product.id.startsWith('seller-');
     if (useBackend) {

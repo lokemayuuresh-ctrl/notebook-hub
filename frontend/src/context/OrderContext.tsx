@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { CartItem } from '@/types';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '@/lib/api';
 
 // OrderStatus is now defined after the interface section
 export type PaymentMethod = 'cod' | 'razorpay';
@@ -83,7 +84,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [trackingMap, setTrackingMap] = useState<Record<string, any>>({});
   const { user } = useAuth();
 
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const base = API_BASE_URL;
 
   // Auto-refresh function
   const refreshOrdersAndNotifications = async () => {
@@ -190,7 +191,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
     const setupSocket = async () => {
       // Connect to socket via server URL
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const base = API_BASE_URL;
 
       // We assume socket is already connected in AuthContext, 
       // but we need to listen for events here too or handle them globally.
@@ -218,7 +219,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch tracking for an order (caches in context)
   const fetchTrackingForOrder = useCallback(async (orderId: string) => {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const base = API_BASE_URL;
     try {
       const res = await fetch(`${base}/api/ordertrackings/${orderId}`, {
         credentials: 'include'
@@ -234,7 +235,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
 
   const addTrackingEntry = async (orderId: string, status: string, note = '') => {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const base = API_BASE_URL;
     try {
       const res = await fetch(`${base}/api/ordertrackings`, {
         method: 'POST',
@@ -354,6 +355,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         quantity: item.quantity
       }));
 
+      const base = API_BASE_URL;
       const res = await fetch(`${base}/api/orders`, {
         method: 'POST',
         credentials: 'include',

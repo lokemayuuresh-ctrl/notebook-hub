@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api';
 
 export type UserRole = 'buyer' | 'seller';
 
@@ -64,8 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (socketRef.current) return socketRef.current;
       // Use VITE_API_URL if set, otherwise default to backend port 5000
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const url = base;
+      const url = API_BASE_URL;
 
       // Try a few CDN sources for the ESM bundle (some CDNs/versions may 404 or block CORS)
       const cdnCandidates = [
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const base = API_BASE_URL;
 
   // Verify session on mount and when storage changes (for multi-tab support)
   const verifySession = async () => {
