@@ -8,7 +8,7 @@ const Product = mongoose.model('Product', ProductSchema);
 
 async function check() {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/Notebook-hub-main');
+        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/tes');
         console.log('Connected to DB');
 
         const products = await Product.find({ image: /:5001/ });

@@ -106,7 +106,7 @@ async function start() {
 
   // Fallback to local default if still no URI
   if (!uri) {
-    uri = 'mongodb://127.0.0.1:27017/notebook-hub';
+    uri = 'mongodb://127.0.0.1:27017/tes';
   }
 
   console.log('Initializing database connection...');
