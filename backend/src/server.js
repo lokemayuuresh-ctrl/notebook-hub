@@ -96,20 +96,37 @@ app.use('/api/admin', adminRouter);
 //conflicting /products route removed to prevent SPA routing issues
 
 // Serve Frontend static files and handle SPA routing
-const frontendDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
-if (fs.existsSync(frontendDist)) {
+// Logic: search for dist in ../frontend or ./dist (if built into backend)
+const possibleFrontendPaths = [
+  path.join(__dirname, '..', '..', 'frontend', 'dist'),
+  path.join(__dirname, '..', 'dist'),
+  path.join(process.cwd(), 'frontend', 'dist'),
+  path.join(process.cwd(), 'dist')
+];
+
+let frontendDist = possibleFrontendPaths.find(p => fs.existsSync(p));
+
+if (frontendDist) {
+  console.log('Serving frontend from:', frontendDist);
   app.use(express.static(frontendDist));
   // Serve index.html for any non-API routes (SPA support)
   app.get('*', (req, res) => {
+    // Skip API and uploads
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
       return res.status(404).json({ message: 'API route not found' });
     }
-    res.sendFile(path.join(frontendDist, 'index.html'));
+    const indexPath = path.join(frontendDist, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ message: 'Frontend build incomplete' });
+    }
   });
 } else {
+  console.warn('Frontend dist folder not found in possible locations.');
   // Basic health check for API-only mode
   app.get('/', (req, res) => {
-    res.send('<h1>NotebookHub Backend is Running</h1><p>API endpoints are at /api/...</p>');
+    res.send('<h1>NotebookHub Backend is Running</h1><p>Frontend build missing. API endpoints are at /api/...</p>');
   });
 }
 
