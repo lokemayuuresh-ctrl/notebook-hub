@@ -138,7 +138,9 @@ router.post('/', auth(true), upload.single('imageFile'), async (req, res) => {
     };
 
     const p = new Product(productData);
+    console.log('Attempting to save product to MongoDB:', p.name);
     const saved = await p.save();
+    console.log('Product saved successfully to collection:', saved.collection.name, 'ID:', saved._id);
 
     const populated = await Product.findById(saved._id).populate('sellerId', 'name email');
     res.status(201).json(populated);

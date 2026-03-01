@@ -90,8 +90,9 @@ router.post('/register', async (req, res) => {
       state: state || null,
       pinCode: pinCode || null
     });
+    console.log('Attempting to save user to MongoDB...');
     const saved = await u.save();
-    console.log('User registered successfully:', { id: saved._id, email: saved.email, role: saved.role });
+    console.log('User saved successfully to collection:', saved.collection.name, 'ID:', saved._id);
 
     const user = { id: saved._id, name: saved.name, email: saved.email, role: saved.role, phone: saved.phone };
     const token = jwt.sign({ id: saved._id, email: saved.email, role: saved.role }, process.env.JWT_SECRET || 'devsecret', { expiresIn: '24h' });
@@ -99,8 +100,8 @@ router.post('/register', async (req, res) => {
     // Set HTTP-only cookie with 24-hour expiration
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-      sameSite: 'lax',
+      secure: true, // Required for sameSite: 'none'
+      sameSite: 'none', // Allow cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
       path: '/'
     });
@@ -182,8 +183,8 @@ router.post('/login', async (req, res) => {
     // Set HTTP-only cookie with 24-hour expiration
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-      sameSite: 'lax',
+      secure: true, // Required for sameSite: 'none'
+      sameSite: 'none', // Allow cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
       path: '/'
     });
@@ -253,8 +254,8 @@ router.post('/google', async (req, res) => {
 
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -350,8 +351,8 @@ router.post('/logout', (req, res) => {
   // Clear the auth cookie
   res.clearCookie('authToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     path: '/'
   });
   res.json({ message: 'Logged out successfully' });
