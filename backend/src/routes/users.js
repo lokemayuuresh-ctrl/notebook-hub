@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const LoginAttempt = require('../models/LoginAttempt');
 const OTP = require('../models/OTP');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 const { sendEmailOTP } = require('../services/email.service');
 

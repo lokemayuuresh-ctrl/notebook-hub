@@ -241,9 +241,19 @@ const Profile = () => {
             <TabsContent value="overview" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="md:col-span-2 shadow-soft border-border/60">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Profile Information</CardTitle>
-                    <CardDescription>Manage your basic account details</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div>
+                      <CardTitle className="text-xl">Profile Information</CardTitle>
+                      <CardDescription>Manage your basic account details</CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab('settings')}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" /> Edit Profile
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
