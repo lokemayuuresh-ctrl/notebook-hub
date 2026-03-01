@@ -29,6 +29,7 @@ const app = express();
 // CORS configuration for cookie support
 const allowedOrigins = [
   'https://notebook-hub.onrender.com',
+  'https://notebook-hub-1.onrender.com',
   'https://notebook-hub-frontend.onrender.com',
   process.env.FRONTEND_URL,
   'http://localhost:8080',
