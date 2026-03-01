@@ -93,15 +93,28 @@ app.use('/api/payments', paymentsRouter);
 const adminRouter = require('./routes/admin');
 app.use('/api/admin', adminRouter);
 
-// Basic health check and redirection for manual testing
-app.get('/', (req, res) => {
-  res.send('<h1>NotebookHub Backend is Running</h1><p>API endpoints are at /api/...</p>');
-});
-
 // Redirect /products to /api/products for easier manual testing
 app.get('/products', (req, res) => {
   res.redirect('/api/products');
 });
+
+// Serve Frontend static files and handle SPA routing
+const frontendDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  // Serve index.html for any non-API routes (SPA support)
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return res.status(404).json({ message: 'API route not found' });
+    }
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  // Basic health check for API-only mode
+  app.get('/', (req, res) => {
+    res.send('<h1>NotebookHub Backend is Running</h1><p>API endpoints are at /api/...</p>');
+  });
+}
 
 // Temporary endpoint to fetch logs for debugging (REMOVE BEFORE FINAL)
 app.get('/api/debug-logs', (req, res) => {
