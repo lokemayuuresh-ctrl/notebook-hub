@@ -315,7 +315,8 @@ router.get('/verify', async (req, res) => {
           role: user.role,
           phone: user.phone,
           address: user.address,
-          pinCode: user.pinCode
+          pinCode: user.pinCode,
+          isVerified: user.isVerified
         }
       });
     } catch (err) {

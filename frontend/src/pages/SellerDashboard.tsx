@@ -11,21 +11,23 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import {
+  ShoppingBag,
   Package,
+  DollarSign,
+  Plus,
+  Search,
+  Filter,
+  Trash2,
+  Edit,
+  Eye,
   CheckCircle,
   XCircle,
-  Truck,
   Clock,
+  Truck,
   Bell,
-  DollarSign,
-  ShoppingBag,
-  Plus,
-  Edit,
-  Trash2,
   X,
-  Ban,
-  Calendar,
-  ShieldCheck
+  Loader2,
+  Ban
 } from 'lucide-react';
 import {
   Dialog,
@@ -134,32 +136,44 @@ const SellerDashboard = () => {
     setEditingProduct(null);
   };
 
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+
   const handleAddProduct = () => {
     if (!productForm.name || !productForm.price || !productForm.category) {
-      toast.error("Missing Fields", {
+      toast.error("Missing fields", {
         description: "Please fill in name, price, and category",
       });
       return;
     }
 
+    setIsAddingProduct(true);
     (async () => {
-      const payload: any = {
-        name: productForm.name,
-        description: productForm.description,
-        price: parseFloat(productForm.price),
-        image: productForm.image || undefined,
-        category: productForm.category,
-        stock: parseInt(productForm.stock) || 0,
-        sellerId: user?.id,
-        sellerName: user?.name
-      };
-      if (productForm.imageFile) payload.imageFile = productForm.imageFile;
-      const added = await addProduct(payload);
+      try {
+        const payload: any = {
+          name: productForm.name,
+          description: productForm.description,
+          price: parseFloat(productForm.price),
+          image: productForm.image || undefined,
+          category: productForm.category,
+          stock: parseInt(productForm.stock) || 0,
+          sellerId: user?.id,
+          sellerName: user?.name
+        };
+        if (productForm.imageFile) payload.imageFile = productForm.imageFile;
+        const added = await addProduct(payload);
 
-      toast.success("Product Added", {
-        description: `${added.name} has been added to your store`,
-      });
-      resetForm();
+        toast.success("Product Added", {
+          description: `${added.name} has been added to your store`,
+        });
+        resetForm();
+      } catch (error: any) {
+        console.error('Failed to add product:', error);
+        toast.error("Failed to add product", {
+          description: error.message || "An unexpected error occurred",
+        });
+      } finally {
+        setIsAddingProduct(false);
+      }
     })();
   };
 
@@ -435,8 +449,18 @@ const SellerDashboard = () => {
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <Button onClick={editingProduct ? handleUpdateProduct : handleAddProduct}>
-                    {editingProduct ? 'Update Product' : 'Add Product'}
+                  <Button
+                    onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
+                    disabled={isAddingProduct}
+                  >
+                    {isAddingProduct ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      editingProduct ? 'Update Product' : 'Add Product'
+                    )}
                   </Button>
                   <Button variant="outline" onClick={resetForm}>
                     Cancel
