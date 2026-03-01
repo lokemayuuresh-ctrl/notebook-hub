@@ -600,23 +600,40 @@ router.put('/:id', auth(true), async (req, res) => {
       try {
         const buyer = await User.findById(order.user);
         if (buyer && buyer.email) {
-          console.log(`Sending status update [${status}] email to current buyer: ${buyer.email} (Order: ${order._id})`);
+          const buyerEmail = buyer.email;
+          const orderIdStr = order._id.toString();
+
+          console.log(`[OTP DEBUG] Sending status update [${status}] email to buyer: ${buyerEmail} (Order: ${orderIdStr})`);
+
           if (status === 'shipped' && updated.deliveryOTP) {
-            console.log(`OTP generated for order ${order._id}: ${updated.deliveryOTP}`);
+            console.log(`[OTP DEBUG] OTP generated and being sent: ${updated.deliveryOTP}`);
           }
-          // Send status update email, include OTP if it was just generated (shipped status)
-          await sendStatusUpdateEmail(buyer.email, order._id.toString(), status, note, updated.deliveryOTP);
-          console.log(`Status update email sent successfully to ${buyer.email}`);
+
+          // Await the email sending to catch errors immediately
+          try {
+            await sendStatusUpdateEmail(buyerEmail, orderIdStr, status, note, updated.deliveryOTP);
+            console.log(`[OTP DEBUG] Email sent successfully to ${buyerEmail} at ${new Date().toISOString()}`);
+          } catch (emailErr) {
+            console.error(`[OTP DEBUG] Failed to send email to ${buyerEmail}:`, emailErr);
+            // We don't throw here to avoid failing the whole request, but we've logged the error
+          }
 
           // If delivered AND paid, send invoice
           if (status === 'delivered' && updated.paymentStatus === 'paid') {
-            const invoiceData = await getInvoiceData(updated); // Helper to format data
-            const pdfBuffer = await generateInvoicePDF(invoiceData);
-            await sendInvoiceEmail(buyer.email, updated, pdfBuffer);
+            try {
+              const invoiceData = await getInvoiceData(updated);
+              const pdfBuffer = await generateInvoicePDF(invoiceData);
+              await sendInvoiceEmail(buyerEmail, updated, pdfBuffer);
+              console.log(`[OTP DEBUG] Invoice sent to ${buyerEmail}`);
+            } catch (invoiceErr) {
+              console.error(`[OTP DEBUG] Failed to send invoice to ${buyerEmail}:`, invoiceErr);
+            }
           }
+        } else {
+          console.warn(`[OTP DEBUG] No email found for buyer of order ${order._id}`);
         }
       } catch (e) {
-        console.error('Email notify failed', e);
+        console.error('[OTP DEBUG] Email notification process failed:', e);
       }
     }
 

@@ -42,7 +42,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </button>
 
       <Link to={`/products/${product.id}`} className="block overflow-hidden">
-        <div className="aspect-square overflow-hidden bg-muted">
+        <div className="aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={imageSrc}
             alt={product.name}
@@ -52,37 +52,37 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       </Link>
 
-      <div className="p-4 space-y-3">
+      <div className="p-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+          <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded leading-none">
             {product.category}
           </span>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Star className="h-3 w-3 fill-primary text-primary" />
             <span>{product.rating}</span>
           </div>
         </div>
 
         <Link to={`/products/${product.id}`}>
-          <h3 className="font-serif font-semibold text-foreground hover:text-primary transition-colors line-clamp-1">
+          <h3 className="text-sm font-serif font-semibold text-foreground hover:text-primary transition-colors line-clamp-1 leading-tight">
             {product.name}
           </h3>
         </Link>
 
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-[11px] text-muted-foreground line-clamp-1 leading-normal">
           {product.description}
         </p>
 
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-lg font-bold text-foreground">
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-base font-bold text-foreground">
             ₹{product.price.toLocaleString()}
           </span>
           <Button
             size="sm"
             onClick={() => addToCart(product)}
-            className="gap-1.5"
+            className="h-8 px-3 text-xs gap-1"
           >
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-3.5 w-3.5" />
             Add
           </Button>
         </div>
