@@ -42,6 +42,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
+// Add security headers for Google Auth (COOP/COEP)
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser()); // Parse cookies
 
