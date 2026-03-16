@@ -1,0 +1,25 @@
+services:
+  # Backend API
+  - type: web
+    name: notebook-hub-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && cd .. && cd frontend && npm install && npm run build && mkdir -p ../backend/dist && cp -r dist/* ../backend/dist/
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromContext: mongodb_uri
+      - key: JWT_SECRET
+        generateValue: true
+
+  # Frontend (Optional but was there initially)
+  - type: static_site
+    name: notebook-hub-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    publishDir: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
